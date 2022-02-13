@@ -11,5 +11,6 @@ data class Preguntas(
     var respuesta2: String,
     var respuesta3: String,
     var respuesta4: String,
-    var respuestaCorrecta: String
+    var respuestaCorrecta: String,
+    var id: Int
 ) : Parcelable

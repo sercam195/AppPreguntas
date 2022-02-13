@@ -1,12 +1,14 @@
 package com.example.apppreguntas
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.example.apppreguntas.databinding.ActivityMainBinding
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.*
 import java.io.IOException
@@ -24,12 +26,12 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun llamada(token : String) {
+    fun llamada(token: String) {
 
         val client = OkHttpClient()
 
         val request = Request.Builder()
-        request.url("http://192.168.1.37:8082/Pregunta/${token}")
+        request.url("http://10.0.2.2:8082/Pregunta/${token}")
 
 
         val call = client.newCall(request.build())
@@ -51,7 +53,9 @@ class MainActivity : AppCompatActivity() {
                     val pregunta = gson.fromJson(body, Preguntas::class.java)
 
                     CoroutineScope(Dispatchers.Main).launch {
-
+                        binding.cargando.visibility = View.VISIBLE
+                        delay(1000)
+                        binding.cargando.visibility = View.GONE
                         binding.tv1.text = pregunta.pregunta
 
                         binding.bt1.text = pregunta.respuesta1
@@ -62,51 +66,58 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     binding.bt1.setOnClickListener {
-                        if (binding.bt1.text == pregunta.respuestaCorrecta) {
-                            Toast.makeText(this@MainActivity, "Está bien", Toast.LENGTH_SHORT)
-                                .show()
-                        } else {
-                            Toast.makeText(this@MainActivity, "Está mal", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                        llamada(token)
+                        (pulsarBoton(binding.bt1, token, pregunta.id))
                     }
 
                     binding.bt2.setOnClickListener {
-                        if (binding.bt2.text == pregunta.respuestaCorrecta) {
-                            Toast.makeText(this@MainActivity, "Está bien", Toast.LENGTH_SHORT)
-                                .show()
-                        } else {
-                            Toast.makeText(this@MainActivity, "Está mal", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                        llamada(token)
+                        (pulsarBoton(binding.bt2, token, pregunta.id))
                     }
 
                     binding.bt3.setOnClickListener {
-                        if (binding.bt3.text == pregunta.respuestaCorrecta) {
-                            Toast.makeText(this@MainActivity, "Está bien", Toast.LENGTH_SHORT)
-                                .show()
-                        } else {
-                            Toast.makeText(this@MainActivity, "Está mal", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                        llamada(token)
+                        (pulsarBoton(binding.bt3, token, pregunta.id))
                     }
 
                     binding.bt4.setOnClickListener {
-                        if (binding.bt4.text == pregunta.respuestaCorrecta) {
-                            Toast.makeText(this@MainActivity, "Está bien", Toast.LENGTH_SHORT)
-                                .show()
-                        } else {
-                            Toast.makeText(this@MainActivity, "Está mal", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                        llamada(token)
+                        (pulsarBoton(binding.bt4, token, pregunta.id))
                     }
                 }
             }
         })
+    }
+
+    fun pulsarBoton(boton: android.widget.Button, token: String, id: Int) {
+
+        val client = OkHttpClient()
+        val respuesta = boton.text.toString()
+        val request = Request.Builder()
+        request.url("http://10.0.2.2:8082/Pregunta$id/${token}/${respuesta}")
+
+
+        val call = client.newCall(request.build())
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                println(e.toString())
+                CoroutineScope(Dispatchers.Main).launch {
+                    Toast.makeText(this@MainActivity, "Algo ha ido mal", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                println(response.toString())
+                response.body?.let { responseBody ->
+                    val body = responseBody.string()
+                    println(body)
+                    CoroutineScope(Dispatchers.Main).launch {
+                        binding.cargando.visibility = View.VISIBLE
+                        delay(1000)
+                        binding.cargando.visibility = View.GONE
+                        Toast.makeText(this@MainActivity, body, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+        llamada(token)
     }
 }
 
