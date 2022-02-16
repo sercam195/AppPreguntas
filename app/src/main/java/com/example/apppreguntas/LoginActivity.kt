@@ -141,7 +141,7 @@ class LoginActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= 26) {
         textCifrado = Base64.getUrlEncoder().encodeToString(cipher.doFinal(textoEnString.toByteArray(Charsets.UTF_8)))
         } else {
-            textCifrado = android.util.Base64.encode(cipher.doFinal(textoEnString.toByteArray(Charsets.UTF_8)), android.util.Base64.URL_SAFE).toString()
+            textCifrado = android.util.Base64.encodeToString(cipher.doFinal(textoEnString.toByteArray(Charsets.UTF_8)), android.util.Base64.URL_SAFE)
         }
         println("He obtenido $textCifrado")
         return textCifrado
