@@ -113,11 +113,11 @@ class MainActivity : AppCompatActivity() {
                         delay(1000)
                         binding.cargando.visibility = View.GONE
                         Toast.makeText(this@MainActivity, body, Toast.LENGTH_SHORT).show()
+                        llamada(token)
                     }
                 }
             }
         })
-        llamada(token)
     }
 }
 
