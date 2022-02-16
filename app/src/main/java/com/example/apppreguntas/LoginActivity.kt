@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doAfterTextChanged
 import androidx.core.widget.doOnTextChanged
 import com.example.apppreguntas.databinding.LoginBinding
 import kotlinx.coroutines.CoroutineScope
@@ -31,11 +32,11 @@ class LoginActivity : AppCompatActivity() {
         binding = LoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.usuario.doOnTextChanged { text, start, before, count ->
+        binding.usuario.doAfterTextChanged { text->
             mostrarBotonUser(text)
         }
 
-        binding.password.doOnTextChanged { text, start, before, count ->
+        binding.password.doAfterTextChanged { text->
             mostrarBotonPassword(text)
         }
 
@@ -83,23 +84,24 @@ class LoginActivity : AppCompatActivity() {
     }
 
     fun validarUsuario(usuario: CharSequence?): Boolean {
-        if (usuario != null) {
-            if (usuario.length < 3) {
+
+        usuario?.let {
+            if (it.length < 3) {
                 return false
             }
-        }
-        usuario?.forEach {
-            if (!(it.isLetter()))
-                return false
-        }
-        return true
+            it.forEach {
+                if (!(it.isLetter()))
+                    return false
+            }
+            return true
+        }.run { return false }
     }
 
     fun validarPassword(password: CharSequence?): Boolean {
         var contadorVocales = 0
         var contadorNumeros = 0
         if (password != null) {
-            if (password.length != 8) {
+            if (password.length < 8) {
                 return false
             }
         }
