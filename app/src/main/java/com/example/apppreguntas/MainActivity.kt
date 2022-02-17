@@ -1,5 +1,6 @@
 package com.example.apppreguntas
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -7,6 +8,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.apppreguntas.databinding.ActivityMainBinding
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +22,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     var listaBotones = arrayListOf<android.widget.Button>()
-    var intentos = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,9 +33,16 @@ class MainActivity : AppCompatActivity() {
         listaBotones.add(binding.bt4)
 
         binding.btPulsar.setBackgroundColor(ContextCompat.getColor(this, R.color.purple_200))
-        listaBotones.forEach { it.setBackgroundColor(ContextCompat.getColor(this, R.color.purple_500)) }
-        var token = intent.getStringExtra("TOKEN")
-        token?.let { llamada(token) }.run { println("Fue mal") }
+        listaBotones.forEach {
+            it.setBackgroundColor(
+                ContextCompat.getColor(
+                    this,
+                    R.color.purple_500
+                )
+            )
+        }
+        val token = intent.getStringExtra("TOKEN")
+        token?.let { llamada(it) }
     }
 
     fun llamada(token: String) {
@@ -48,7 +57,11 @@ class MainActivity : AppCompatActivity() {
             override fun onFailure(call: Call, e: IOException) {
                 println(e.toString())
                 CoroutineScope(Dispatchers.Main).launch {
-                    Toast.makeText(this@MainActivity, "Algo ha ido mal", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(
+                        binding.root,
+                        "Algo ha ido mal",
+                        BaseTransientBottomBar.LENGTH_SHORT
+                    ).show()
                 }
             }
 
@@ -71,6 +84,7 @@ class MainActivity : AppCompatActivity() {
                             binding.bt2.text = pregunta.respuesta2
                             binding.bt3.text = pregunta.respuesta3
                             binding.bt4.text = pregunta.respuesta4
+                            contadorIntentos(token)
 
                             binding.bc.setOnClickListener {
                                 cambiarColor(binding.btPulsar)
@@ -103,7 +117,7 @@ class MainActivity : AppCompatActivity() {
                             binding.btPulsar.visibility = View.GONE
                         }
                     }
-                } catch (e : Exception){
+                } catch (e: Exception) {
                     val intent = Intent(this@MainActivity, FinalActivity::class.java)
                     intent.putExtra("CORRECTAS", binding.tvContador.text.toString())
                     startActivity(intent)
@@ -123,21 +137,27 @@ class MainActivity : AppCompatActivity() {
             override fun onFailure(call: Call, e: IOException) {
                 println(e.toString())
                 CoroutineScope(Dispatchers.Main).launch {
-                    Toast.makeText(this@MainActivity, "Algo ha ido mal", Toast.LENGTH_SHORT)
-                        .show()
+                    Snackbar.make(
+                        binding.root,
+                        "Algo ha ido mal",
+                        BaseTransientBottomBar.LENGTH_SHORT
+                    ).show()
                 }
             }
 
+            @SuppressLint("SetTextI18n")
             override fun onResponse(call: Call, response: Response) {
                 println(response.toString())
                 response.body?.let { responseBody ->
                     val body = responseBody.string()
                     println(body)
                     CoroutineScope(Dispatchers.Main).launch {
-                        Toast.makeText(this@MainActivity, body, Toast.LENGTH_SHORT).show()
+                        Snackbar.make(
+                            binding.root,
+                            body,
+                            BaseTransientBottomBar.LENGTH_SHORT
+                        ).show()
                         contadorAciertos(token)
-                        intentos++
-                        binding.tvIntentos.text = "Intentos: $intentos"
                         llamada(token)
                     }
                 }
@@ -167,11 +187,15 @@ class MainActivity : AppCompatActivity() {
             override fun onFailure(call: Call, e: IOException) {
                 println(e.toString())
                 CoroutineScope(Dispatchers.Main).launch {
-                    Toast.makeText(this@MainActivity, "Algo ha ido mal", Toast.LENGTH_SHORT)
-                        .show()
+                    Snackbar.make(
+                        binding.root,
+                        "Algo ha ido mal",
+                        BaseTransientBottomBar.LENGTH_SHORT
+                    ).show()
                 }
             }
 
+            @SuppressLint("SetTextI18n")
             override fun onResponse(call: Call, response: Response) {
                 println(response.toString())
                 response.body?.let { responseBody ->
@@ -179,6 +203,39 @@ class MainActivity : AppCompatActivity() {
                     println(body)
                     CoroutineScope(Dispatchers.Main).launch {
                         binding.tvContador.text = "Aciertos: $body"
+                    }
+                }
+            }
+        })
+    }
+
+    fun contadorIntentos(token: String) {
+
+        val client = OkHttpClient()
+        val request = Request.Builder()
+        request.url("http://10.0.2.2:8082/MostrarIntentos/${token}")
+
+        val call = client.newCall(request.build())
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                println(e.toString())
+                CoroutineScope(Dispatchers.Main).launch {
+                    Snackbar.make(
+                        binding.root,
+                        "Algo ha ido mal",
+                        BaseTransientBottomBar.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            @SuppressLint("SetTextI18n")
+            override fun onResponse(call: Call, response: Response) {
+                println(response.toString())
+                response.body?.let { responseBody ->
+                    val body = responseBody.string()
+                    println(body)
+                    CoroutineScope(Dispatchers.Main).launch {
+                        binding.tvIntentos.text = "Intentos: $body"
                     }
                 }
             }
