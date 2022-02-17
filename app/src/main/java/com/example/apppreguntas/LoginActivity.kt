@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -23,6 +24,7 @@ import java.security.MessageDigest
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
+
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: LoginBinding
@@ -87,18 +89,27 @@ class LoginActivity : AppCompatActivity() {
         })
     }
 
+    fun afterTextChanged(editable: Editable) {
+        if (editable === first_edit_text.getEditableText()) {
+            // do other things
+        } else if (editable === second_edit_text.getEditableText()) {
+            // do other things
+        }
+    }
+
     private fun validarUsuario(usuario: CharSequence?): Boolean {
 
-        usuario?.let { it ->
-            if (it.length < 3) {
+        if (usuario != null) {
+            if (usuario.length < 3) {
                 return false
             }
-            it.forEach {
+            usuario.forEach {
                 if (!(it.isLetter()))
                     return false
             }
             return true
-        }.run { return false }
+        }
+        return false
     }
 
     private fun validarPassword(password: CharSequence?): Boolean {
@@ -109,16 +120,17 @@ class LoginActivity : AppCompatActivity() {
             if (password.length < 8) {
                 return false
             }
+            password.forEach {
+                if (it.isLetter()) {
+                    contadorVocales++
+                } else if (it.isDigit())
+                    contadorNumeros++
+            }
+            if (contadorNumeros == 0 || contadorVocales == 0)
+                return false
+            return true
         }
-        password?.forEach {
-            if (it.isLetter()) {
-                contadorVocales++
-            } else if (it.isDigit())
-                contadorNumeros++
-        }
-        if (contadorNumeros == 0 || contadorVocales == 0)
-            return false
-        return true
+        return false
     }
 
     private fun mostrarBotonUser(text: CharSequence?) {
