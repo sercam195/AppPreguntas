@@ -1,6 +1,6 @@
 package com.example.apppreguntas
 
-import android.graphics.Color
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -54,53 +54,59 @@ class MainActivity : AppCompatActivity() {
 
             override fun onResponse(call: Call, response: Response) {
                 println(response.toString())
-                response.body?.let { responseBody ->
-                    val body = responseBody.string()
-                    println(body)
-                    val gson = Gson()
-                    var respuesta = ""
-                    val pregunta = gson.fromJson(body, Preguntas::class.java)
+                try {
+                    response.body?.let { responseBody ->
+                        val body = responseBody.string()
+                        println(body)
+                        val gson = Gson()
+                        var respuesta = ""
+                        val pregunta = gson.fromJson(body, Preguntas::class.java)
 
-                    CoroutineScope(Dispatchers.Main).launch {
-                        binding.cargando.visibility = View.VISIBLE
-                        delay(1000)
-                        binding.cargando.visibility = View.GONE
-                        binding.tv1.text = pregunta.pregunta
-                        binding.bt1.text = pregunta.respuesta1
-                        binding.bt2.text = pregunta.respuesta2
-                        binding.bt3.text = pregunta.respuesta3
-                        binding.bt4.text = pregunta.respuesta4
+                        CoroutineScope(Dispatchers.Main).launch {
+                            binding.cargando.visibility = View.VISIBLE
+                            delay(1000)
+                            binding.cargando.visibility = View.GONE
+                            binding.tv1.text = pregunta.pregunta
+                            binding.bt1.text = pregunta.respuesta1
+                            binding.bt2.text = pregunta.respuesta2
+                            binding.bt3.text = pregunta.respuesta3
+                            binding.bt4.text = pregunta.respuesta4
 
-                        binding.bc.setOnClickListener {
+                            binding.bc.setOnClickListener {
+                                cambiarColor(binding.btPulsar)
+                                binding.btPulsar.visibility = View.GONE
+                            }
+                        }
+
+                        binding.bt1.setOnClickListener {
+                            cambiarColor(binding.bt1)
+                            respuesta = binding.bt1.text.toString()
+                        }
+
+                        binding.bt2.setOnClickListener {
+                            cambiarColor(binding.bt2)
+                            respuesta = binding.bt2.text.toString()
+                        }
+
+                        binding.bt3.setOnClickListener {
+                            cambiarColor(binding.bt3)
+                            respuesta = binding.bt3.text.toString()
+                        }
+
+                        binding.bt4.setOnClickListener {
+                            cambiarColor(binding.bt4)
+                            respuesta = binding.bt4.text.toString()
+                        }
+                        binding.btPulsar.setOnClickListener {
                             cambiarColor(binding.btPulsar)
+                            (pulsarBoton(respuesta, token, pregunta.id))
                             binding.btPulsar.visibility = View.GONE
                         }
                     }
-
-                    binding.bt1.setOnClickListener {
-                        cambiarColor(binding.bt1)
-                        respuesta = binding.bt1.text.toString()
-                    }
-
-                    binding.bt2.setOnClickListener {
-                        cambiarColor(binding.bt2)
-                        respuesta = binding.bt2.text.toString()
-                    }
-
-                    binding.bt3.setOnClickListener {
-                        cambiarColor(binding.bt3)
-                        respuesta = binding.bt3.text.toString()
-                    }
-
-                    binding.bt4.setOnClickListener {
-                        cambiarColor(binding.bt4)
-                        respuesta = binding.bt4.text.toString()
-                    }
-                    binding.btPulsar.setOnClickListener {
-                        cambiarColor(binding.btPulsar)
-                        (pulsarBoton(respuesta, token, pregunta.id))
-                        binding.btPulsar.visibility = View.GONE
-                    }
+                } catch (e : Exception){
+                    val intent = Intent(this@MainActivity, FinalActivity::class.java)
+                    intent.putExtra("CORRECTAS", binding.tvContador.text.toString())
+                    startActivity(intent)
                 }
             }
         })
@@ -109,9 +115,8 @@ class MainActivity : AppCompatActivity() {
     fun pulsarBoton(boton: String, token: String, id: Int) {
 
         val client = OkHttpClient()
-        val respuesta = boton
         val request = Request.Builder()
-        request.url("http://10.0.2.2:8082/Pregunta$id/${token}/${respuesta}")
+        request.url("http://10.0.2.2:8082/Pregunta$id/${token}/$boton")
 
         val call = client.newCall(request.build())
         call.enqueue(object : Callback {
