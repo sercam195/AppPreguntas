@@ -3,7 +3,6 @@ package com.example.apppreguntas
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import com.example.apppreguntas.databinding.PantallafinalBinding
 
 class FinalActivity : AppCompatActivity() {
@@ -22,6 +21,5 @@ class FinalActivity : AppCompatActivity() {
             val intent = Intent(this@FinalActivity, LoginActivity::class.java)
             startActivity(intent)
         }
-
     }
 }
