@@ -14,7 +14,7 @@ class FinalActivity : AppCompatActivity() {
         binding = PantallafinalBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        var correctas = intent.getStringExtra("CORRECTAS")
+        val correctas = intent.getStringExtra("CORRECTAS")
         binding.tvFinal.text = "Porcentaje de ${correctas}0%"
 
         binding.siguiente.setOnClickListener {

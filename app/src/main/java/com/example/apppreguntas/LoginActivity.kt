@@ -5,12 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.text.Editable
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.widget.doAfterTextChanged
 import com.example.apppreguntas.databinding.LoginBinding
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
@@ -28,7 +26,6 @@ import javax.crypto.spec.SecretKeySpec
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: LoginBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = LoginBinding.inflate(layoutInflater)
@@ -36,12 +33,12 @@ class LoginActivity : AppCompatActivity() {
         binding.usuario.text.clear()
         binding.password.text.clear()
 
-        binding.usuario.doAfterTextChanged { text ->
-            mostrarBotonUser(text)
+        binding.usuario.doAfterTextChanged {
+            mostrarBoton()
         }
 
-        binding.password.doAfterTextChanged { text ->
-            mostrarBotonPassword(text)
+        binding.password.doAfterTextChanged {
+            mostrarBoton()
         }
     }
 
@@ -71,10 +68,10 @@ class LoginActivity : AppCompatActivity() {
                         if (body == "Usuario ya registrado") {
                             Snackbar.make(
                                 binding.root,
-                                "Usuario ya registrado",
+                                body,
                                 BaseTransientBottomBar.LENGTH_SHORT
                             ).show()
-                            binding.usuario.text.clear()
+                            binding.password.text.clear()
                         } else {
                             binding.cargando2.visibility = View.VISIBLE
                             delay(1000)
@@ -87,14 +84,6 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         })
-    }
-
-    fun afterTextChanged(editable: Editable) {
-        if (editable === first_edit_text.getEditableText()) {
-            // do other things
-        } else if (editable === second_edit_text.getEditableText()) {
-            // do other things
-        }
     }
 
     private fun validarUsuario(usuario: CharSequence?): Boolean {
@@ -133,71 +122,16 @@ class LoginActivity : AppCompatActivity() {
         return false
     }
 
-    private fun mostrarBotonUser(text: CharSequence?) {
-        if (validarUsuario(text)) {
-            if (validarPassword(binding.password.text.toString())) {
-                binding.boton.setBackgroundColor(ContextCompat.getColor(this, R.color.purple_500))
-            } else {
-                binding.boton.setBackgroundColor(ContextCompat.getColor(this, R.color.gris))
-                binding.boton.setOnClickListener {
-                    val sharedPreferences = getSharedPreferences("Prefs", Context.MODE_PRIVATE)
-                    val key = sharedPreferences.getString("key", generarLlave())
-                    println("LLAVE $key")
-                    val passwordCifrada =
-                        key?.let { it1 -> cifrar(binding.password.text.toString(), it1) }
-                    llamada(binding.usuario.text.toString(), passwordCifrada as String)
-                }
-                binding.boton.setOnClickListener {
-                    Snackbar.make(
-                        binding.root,
-                        "Usuario o Contraseña mal introducido",
-                        BaseTransientBottomBar.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        } else {
-            binding.boton.setBackgroundColor(ContextCompat.getColor(this, R.color.gris))
-            binding.boton.setOnClickListener {
-                Snackbar.make(
-                    binding.root,
-                    "Usuario o Contraseña mal introducido",
-                    BaseTransientBottomBar.LENGTH_SHORT
-                ).show()
-            }
-        }
-    }
 
-    private fun mostrarBotonPassword(text: CharSequence?) {
+    private fun mostrarBoton() {
         if (validarUsuario(binding.usuario.text.toString())) {
-            if (validarPassword(text)) {
-                binding.boton.setBackgroundColor(ContextCompat.getColor(this, R.color.purple_500))
-                binding.boton.setOnClickListener {
-                    val sharedPreferences = getSharedPreferences("Prefs", Context.MODE_PRIVATE)
-                    val key = sharedPreferences.getString("key", generarLlave())
-                    println("LLAVE $key")
-                    val passwordCifrada =
-                        key?.let { it1 -> cifrar(binding.password.text.toString(), it1) }
-                    llamada(binding.usuario.text.toString(), passwordCifrada as String)
-                }
+            if (validarPassword(binding.password.text.toString())) {
+                botonEnable()
             } else {
-                binding.boton.setBackgroundColor(ContextCompat.getColor(this, R.color.gris))
-                binding.boton.setOnClickListener {
-                    Snackbar.make(
-                        binding.root,
-                        "Usuario o Contraseña mal introducido",
-                        BaseTransientBottomBar.LENGTH_SHORT
-                    ).show()
-                }
+                botonDisable()
             }
         } else {
-            binding.boton.setBackgroundColor(ContextCompat.getColor(this, R.color.gris))
-            binding.boton.setOnClickListener {
-                Snackbar.make(
-                    binding.root,
-                    "Usuario o Contraseña mal introducido",
-                    BaseTransientBottomBar.LENGTH_SHORT
-                ).show()
-            }
+            botonDisable()
         }
     }
 
@@ -218,6 +152,36 @@ class LoginActivity : AppCompatActivity() {
         }
         println("He obtenido $textCifrado")
         return textCifrado
+    }
+
+    private fun botonDisable() {
+        binding.boton.setBackgroundColor(ContextCompat.getColor(this, R.color.gris))
+        binding.boton.setOnClickListener {
+            Snackbar.make(
+                binding.root,
+                "Usuario o Contraseña mal introducido",
+                BaseTransientBottomBar.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    private fun botonEnable() {
+        binding.boton.setBackgroundColor(ContextCompat.getColor(this, R.color.purple_500))
+        binding.boton.setOnClickListener {
+            val sharedPreferences = getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+            if (sharedPreferences.getString("TAG", "No había nada").equals("No había nada")) {
+                with(getSharedPreferences("Prefs", Context.MODE_PRIVATE).edit()) {
+                    putString("TAG", generarLlave())
+                    commit()
+                }
+            }
+            val key = sharedPreferences.getString("TAG", "No había nada").equals("No había nada")
+                .toString()
+
+            println("LLAVE $key")
+            val passwordCifrada = cifrar(binding.password.text.toString(), key)
+            llamada(binding.usuario.text.toString(), passwordCifrada as String)
+        }
     }
 
     private fun getKey(llaveEnString: String): SecretKeySpec {
