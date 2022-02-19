@@ -20,7 +20,7 @@ import java.io.IOException
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    var listaBotones = arrayListOf<android.widget.Button>()
+    private var listaBotones = arrayListOf<android.widget.Button>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,7 +83,6 @@ class MainActivity : AppCompatActivity() {
                             binding.bt2.text = pregunta.respuesta2
                             binding.bt3.text = pregunta.respuesta3
                             binding.bt4.text = pregunta.respuesta4
-                            contadorIntentos(token)
 
                             binding.bc.setOnClickListener {
                                 cambiarColor(binding.btPulsar)
@@ -118,7 +117,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 } catch (e: Exception) {
                     val intent = Intent(this@MainActivity, FinalActivity::class.java)
-                    intent.putExtra("CORRECTAS", binding.tvContador.text.toString())
+                    intent.putExtra("TOKEN", token)
                     startActivity(intent)
                 }
             }
@@ -157,6 +156,7 @@ class MainActivity : AppCompatActivity() {
                             BaseTransientBottomBar.LENGTH_SHORT
                         ).show()
                         contadorAciertos(token)
+                        contadorIntentos(token)
                         llamada(token)
                     }
                 }
